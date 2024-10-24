@@ -1,0 +1,45 @@
+
+version: '3.8'
+services:
+
+  redis:
+    image: 'redis:alpine'
+    hostname: redis
+    container_name: redis
+    ports:
+      - '6379:6379'
+
+  h2-users-api:
+    build:
+      dockerfile: Dockerfile
+      context: ../h2-users-api2
+    hostname: h2-users-api
+    container_name: h2-users-api
+    restart: always
+    ports: 
+      - "8080:8080"
+    depends_on:
+      - redis
+  
+  prometheus:
+    image: 'prom/prometheus:v2.14.0'
+    hostname: prometheus
+    ports:
+      - '9090:9090'
+    command: '--config.file=/etc/prometheus/config.yml'
+    volumes:
+      - './prometheus.yml:/etc/prometheus/config.yml'
+  
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+     - '3006:3000'
+    volumes:
+      - grafana-storage:/var/lib/grafana
+
+volumes:
+  grafana-storage: {}
+  db:
+    driver: local
